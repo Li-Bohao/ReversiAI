@@ -168,7 +168,7 @@ static inline _Bool down_left(Board b,Piece next,int x,int y){
 static inline _Bool down_right(Board b,Piece next,int x,int y){
     int i;
     _Bool has_different_piece=false;
-    for(i=1;x+i<8&&y+i<0;++i){
+    for(i=1;x+i<8&&y+i<8;++i){
         if(is_different_piece(next,b[x+i][y+i])){
             has_different_piece=true;
         }else if(b[x+i][y+i]==EMPTY){
