@@ -1,3 +1,6 @@
+#if !defined(REVERSI_GUARD)&&!defined(REVERSI_COMPILATION)
+#error "Only \"reversi.h\" can be include directly!"
+#endif
 #ifndef REVERSI_DEF_H
 #define REVERSI_DEF_H
 #include <stdint.h>
@@ -14,10 +17,9 @@ static constexpr Board INITIAL_BOARD = {
     {EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY},
     {EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY}
 };
-_Bool IsValidBoard(Board b){
-    return b[3][3]!=EMPTY;
-}
-void SetBoardInvalid(Board b){
-    b[3][3]=EMPTY;
-}
+typedef s_CompressedBoard{
+    uint64_t high,low;
+} CompressedBoard;
+CompressedBoard Compress(Board b);
+void Decompress(Board b,CompressedBoard cb);
 #endif
