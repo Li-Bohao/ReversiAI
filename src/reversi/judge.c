@@ -1,7 +1,7 @@
 #define REVERSI_COMPILATION
-#include"def.h"
-#include"judge.h"
-Piece judge(Board b){
+#include"reversi/def.h"
+#include"reversi/judge.h"
+Piece Judge(Board b){
     int black=0,white=0;
     for(int i=0;i<8;++i){
         for(int j=0;j<8;++j){

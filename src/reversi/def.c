@@ -1,5 +1,5 @@
 #define REVERSI_COMPILATION
-#include"def.h"
+#include"reversi/def.h"
 #include <stdint.h>
 /*TODO：这儿其实可以用SIMD加速*/
 CompressedBoard Compress(Board b){
