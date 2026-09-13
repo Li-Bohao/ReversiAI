@@ -14,9 +14,6 @@
 #ifndef HMName/*表名*/
 #error "HMName undefined!"
 #endif
-#ifndef HM_SIZE/*容量*/
-#error "HM_SIZE undefined!"
-#endif
 #ifndef HMHash/*哈希函数*/
 #error "HMHash undefined!"
 #endif
@@ -33,56 +30,62 @@ typedef struct{
 static HashIndex* HM(Map);
 static HM(Node)* HM(Pool);
 #ifdef MT_HASHMAP
-constexpr static HM(LockLg)=4;
-static pthread_rwlock_t HM(InsertLocks)[1<<HM(LockLg)];
-static pthread_rwlock_t HM(ValueLocks)[1<<HM(LockLg)];
-static inline uint32_t HM(hash_key_to_lock_index)(uint32_t hk){
-    /*TODO：注意看这种方法有没有性能问题*/
-    return hk&((1<<HM(LockLg))-1);
-}
+static pthread_rwlock_t* HM(InsertLocks);
+static pthread_rwlock_t* HM(ValueLocks);
+static uint32_t HM(hash_size);
+static uint32_t HM(map_size);
 static inline void HM(InitLocks)(){
-    for(int i=0;i<(1<<HM(LockLg));++i){
+    HM(InsertLocks)=(pthread_rwlock_t*)malloc(HM(hash_size)*sizeof(pthread_rwlock_t));
+    HM(ValueLocks)=(pthread_rwlock_t*)malloc(HM(map_size)*sizeof(pthread_rwlock_t));
+    for(uint32_t i=0;i<HM(hash_size);++i){
         pthread_rwlock_init(&HM(InsertLocks)[i]);
+    }
+    for(uint32_t i=0;i<HM(map_size);++i){
         pthread_rwlock_init(&HM(ValueLocks)[i]);
     }
 }
 static inline void HM(FreeLocks)(){
-    for(int i=0;i<(1<<HM(LockLg));++i){
+    for(int i=0;i<HM(hash_size);++i){
         pthread_rwlock_destroy(&HM(InsertLocks)[i]);
+    }
+    for(int i=0;i<HM(map_size);++i){
         pthread_rwlock_destroy(&HM(ValueLocks)[i]);
     }
+    free(HM(InsertLocks));
+    free(HM(ValueLocks));
 }
 static inline void HM(read_lock)(uint32_t hk){
-    pthread_rwlock_rdlock(&HM(ValueLocks)[HM(hash_key_to_lock_index)(hk)]);
+    pthread_rwlock_rdlock(&HM(ValueLocks)[hk]);
 }
 static inline void HM(write_lock)(uint32_t hk){
-    pthread_rwlock_wrlock(&HM(ValueLocks)[HM(hash_key_to_lock_index)(hk)]);
-}
-static inline void HM(read_lock_insert)(uint32_t hk){
-    pthread_rwlock_rdlock(&HM(InsertLocks)[HM(hash_key_to_lock_index)(hk)]);
-}
-static inline void HM(write_lock_insert)(uint32_t hk){
-    pthread_rwlock_wrlock(&HM(InsertLocks)[HM(hash_key_to_lock_index)(hk)]);
+    pthread_rwlock_wrlock(&HM(ValueLocks)[hk]);
 }
 static inline void HM(unlock)(uint32_t hk){
-    pthread_rwlock_unlock(&HM(ValueLocks)[HM(hash_key_to_lock_index)(hk)]);
+    pthread_rwlock_unlock(&HM(ValueLocks)[hk]);
+}
+static inline void HM(read_lock_insert)(uint32_t hk){
+    pthread_rwlock_rdlock(&HM(InsertLocks)[hk]);
+}
+static inline void HM(write_lock_insert)(uint32_t hk){
+    pthread_rwlock_wrlock(&HM(InsertLocks)[hk]);
 }
 static inline void HM(unlock_insert)(uint32_t hk){
-    pthread_rwlock_unlock(&HM(InsertLocks)[HM(hash_key_to_lock_index)(hk)]);
+    pthread_rwlock_unlock(&HM(InsertLocks)[hk]);
 }
 static _Atomic uint32_t HM(Count);
 #else
 static uint32_t HM(Count);
 #endif
-#define HM_OVER_SIZE (1000)
-static void HM(Init)() {
-    HM(Map)=(HashIndex*)malloc(HM_SIZE*sizeof(HashIndex));
+static void HM(Init)(uint32_t hash_size,uint32_t map_size) {
+    HM(hash_size)=hash_size;
+    HM(map_size)=map_size;
+    HM(Map)=(HashIndex*)malloc(hash_size*sizeof(HashIndex));
     /*TODO：余量设为多少合适？现在是1000*/
-    HM(Pool)=(HM(Node)*)malloc((HM_SIZE+HM_OVER_SIZE)*sizeof(HM(Node)));
-    for(uint32_t i=0;i<HM_SIZE;++i){
+    HM(Pool)=(HM(Node)*)malloc(map_size*sizeof(HM(Node)));
+    for(uint32_t i=0;i<hash_size;++i){
         HM(Map)[i]=INVALID_HASH_INDEX;
     }
-    for(uint32_t i=0;i<HM_SIZE+HM_OVER_SIZE;++i){
+    for(uint32_t i=0;i<map_size;++i){
         set_no_next(HM(Pool)[i]);
     }
 #ifdef MT_HASHMAP
@@ -93,7 +96,7 @@ static void HM(Init)() {
 #endif
 }
 static HashIndex HM(Find)(HMKey k) {
-    uint32_t hash_key=HMHash(k)%HM_SIZE;
+    uint32_t hash_key=HMHash(k)%HM(hash_size);
 #ifdef MT_HASHMAP
     HM(read_lock_insert)(hash_key);
 #endif
@@ -159,7 +162,7 @@ static inline HashIndex HM(insert)(HashIndex prev,HMKey k,uint32_t hash_key,_Boo
     return hi;
 }
 static HashIndex HM(FindOrInsert)(HMKey k) {
-    uint32_t hash_key=HMHash(k)%HM_SIZE;
+    uint32_t hash_key=HMHash(k)%HM(hash_size);
 #ifdef MT_HASHMAP
     HM(read_lock_insert)(hash_key);
 #endif
@@ -261,7 +264,6 @@ static inline HMKey HM(GetKey)(HashIndex hi){
 #undef HMKey
 #undef HMValue
 #undef HMName
-#undef HM_SIZE
 #undef HMHash
 #ifdef MT_HASHMAP
 #undef MT_HASHMAP

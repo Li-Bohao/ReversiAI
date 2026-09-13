@@ -6,7 +6,7 @@
 #include<sys/syscall.h>
 #include<unistd.h>
 #include"tools/read_reentrant_rwlock.h"
-constexpr int FREE=0,PROTECTED=1;
+const int FREE=0,PROTECTED=1;
 /*TODO：深入分析protect的内存序！*/
 void Init(read_reentrant_rwlock*lock,uint32_t max_thread){
     lock->max_thread=max_thread;

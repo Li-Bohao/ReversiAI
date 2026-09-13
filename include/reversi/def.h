@@ -5,9 +5,9 @@
 #define REVERSI_DEF_H
 #include <stdint.h>
 typedef uint8_t Piece;
-static constexpr Piece EMPTY = 0, BLACK = 2, WHITE = 3, INVALID_PIECE = 1;
+static const Piece EMPTY = 0, BLACK = 2, WHITE = 3, INVALID_PIECE = 1;
 typedef Piece Board[8][8];
-static constexpr Board INITIAL_BOARD = {
+static const Board INITIAL_BOARD = {
     {EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY},
     {EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY},
     {EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY},
@@ -17,6 +17,7 @@ static constexpr Board INITIAL_BOARD = {
     {EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY},
     {EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY}
 };
+void GetInitialBoard(Board b);
 typedef{
     uint64_t high,low;
 }CompressedBoard;
@@ -26,4 +27,5 @@ _Bool IsValidPiece(Piece p);
 #define ReversePiece(p) do{\
     p^=1;\
 }while(0)
+Piece GetReversedPiece(Piece p);
 #endif

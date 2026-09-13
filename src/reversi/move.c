@@ -4,7 +4,7 @@
 #include"reversi/def.h"
 #include"reversi/move.h"
 static inline _Bool is_different_piece(Piece next,Piece p){
-    return p!=EMPTY&&next!=p;
+    return next^p=1;
 }
 static inline _Bool left(Board b,Piece next,int x,int y){
     int i;

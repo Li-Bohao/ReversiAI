@@ -9,7 +9,7 @@
 typedef struct{
     uint8_t x, y;
 } Point;
-constexpr uint8_t MAX_MOVE = 33; /*据研究，合法的棋局最多只能有这么多种移动方法*/
+const uint8_t MAX_MOVE = 33; /*据研究，合法的棋局最多只能有这么多种移动方法*/
 typedef struct{
     Point p[MAX_MOVE];
     uint8_t count;

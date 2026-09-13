@@ -1,8 +1,10 @@
 #include<stdio.h>
 #include<time.h>
 #include<string.h>
+#include<stdarg.h>
+#include<stdlib.h>
 #include"reversi/log.h"
-constexpr const char* LOG_FILE="Reversi.log";
+const const char* LOG_FILE="Reversi.log";
 /*TODO：多线程？*/
 #define TIME_BUF_LEN 256
 void get_time(char*time){
@@ -78,14 +80,56 @@ void log(const char*level,const char*s){
     }
 }
 #undef TIME_BUF_LEN
-void InfoLog(const char*s){
-    log("Info",s);
+void InfoLog(const char*s,...){
+    va_list ap;
+    va_list ap2;
+    va_start(ap,s);
+    va_copy(ap2,ap);
+    int len=vsnprintf(NULL,0,s,ap);
+    va_end(ap);
+    if(len<0){
+        va_end(ap2);
+        return;
+    }
+    char *buf=(char*)malloc((len+1)*sizeof(char));
+    int n=vsnprintf(buf,(len+1)*sizeof(char),s,ap2);
+    va_end(ap2);
+    log("Info",buf);
+    free(buf);
 }
-void ErrorLog(const char*s){
-    log("Error",s);
+void ErrorLog(const char*s,...){
+    va_list ap;
+    va_list ap2;
+    va_start(ap,s);
+    va_copy(ap2,ap);
+    int len=vsnprintf(NULL,0,s,ap);
+    va_end(ap);
+    if(len<0){
+        va_end(ap2);
+        return;
+    }
+    char *buf=(char*)malloc((len+1)*sizeof(char));
+    int n=vsnprintf(buf,(len+1)*sizeof(char),s,ap2);
+    va_end(ap2);
+    log("Error",buf);
+    free(buf);
 }
 #ifdef DEBUG
-void debug_log(const char*s){
-    log("Debug",s);
+void debug_log(const char*s,...){
+    va_list ap;
+    va_list ap2;
+    va_start(ap,s);
+    va_copy(ap2,ap);
+    int len=vsnprintf(NULL,0,s,ap);
+    va_end(ap);
+    if(len<0){
+        va_end(ap2);
+        return;
+    }
+    char *buf=(char*)malloc((len+1)*sizeof(char));
+    int n=vsnprintf(buf,(len+1)*sizeof(char),s,ap2);
+    va_end(ap2);
+    log("Debug",buf);
+    free(buf);
 }
 #endif
